@@ -125,6 +125,11 @@ a { color: inherit; }
 .top { padding: 22px 0 48px; background: linear-gradient(90deg, rgba(6, 12, 22, .9), rgba(6, 12, 22, .6) 45%, rgba(6, 12, 22, .25)), var(--img-strip) left top / auto 100% repeat-x, #0b1628; }
 .brand { font: 800 italic clamp(1.8rem, 4vw, 2.5rem)/1 var(--display); text-transform: uppercase; letter-spacing: .02em; text-shadow: 3px 3px 0 var(--shadow); }
 .tagline { margin: 6px 0 0; color: var(--muted); }
+.top-in { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px 24px; }
+a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+.gh-link { flex: none; }
+footer a { color: var(--ink); text-underline-offset: 3px; }
+footer a:hover { color: var(--gold); }
 
 /* buttons and fields */
 .btn {
@@ -355,9 +360,12 @@ footer p { max-width: 92ch; }
   <div class="banner" aria-hidden="true"><span id="banner-text">Memory Card</span></div>
   <div class="main">
     <header class="top">
-      <div class="wrap">
-        <h1 class="brand">THPS2 save editor</h1>
-        <p class="tagline">Edit careers on a Tony Hawk's Pro Skater 2 memory card (PlayStation, US version).</p>
+      <div class="wrap top-in">
+        <div>
+          <h1 class="brand">THPS2 save editor</h1>
+          <p class="tagline">Edit careers on a Tony Hawk's Pro Skater 2 memory card (PlayStation, US version).</p>
+        </div>
+        <a class="btn small gh-link" href="https://github.com/shualyons/thps2-save-editor" target="_blank" rel="noopener noreferrer">View on GitHub<span class="sr-only"> (opens in a new tab)</span></a>
       </div>
     </header>
     <div class="frame frame-top" aria-hidden="true"><span></span></div>
@@ -418,7 +426,8 @@ footer p { max-width: 92ch; }
     <footer>
       <div class="wrap">
         <p>Save format research: the THPS2 demo decompilation by emoluvjd2 (memory card layout), DCxDemo's THPS2 Cumulative Patch (career data notes), community GameShark code lists, and StrategyWiki (goal lists and level requirements). The layout was confirmed against real saves in DuckStation.</p>
-        <p>Fonts: Barlow and Barlow Condensed by the Barlow Project Authors, and Sedgwick Ave Display by the Sedgwick Ave Project Authors, all under the SIL Open Font License. Not affiliated with or endorsed by Activision or Neversoft. Tony Hawk's Pro Skater is a trademark of Activision.</p>
+        <p>Free and open source. <a href="https://github.com/shualyons/thps2-save-editor" target="_blank" rel="noopener noreferrer">View the code on GitHub<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+        <p>Not affiliated with or endorsed by Activision or Neversoft. Tony Hawk's Pro Skater is a trademark of Activision.</p>
       </div>
     </footer>
     <div class="frame frame-bottom" aria-hidden="true"><span></span></div>
