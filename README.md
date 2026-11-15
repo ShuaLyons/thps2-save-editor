@@ -1,10 +1,10 @@
 # THPS2 Save Editor
 
-A browser-based save editor for **Tony Hawk's Pro Skater 2** on the PlayStation (US version, SLUS-01066, including the Greatest Hits release).
+A browser-based save editor for **Tony Hawk's Pro Skater 2** on the PlayStation: the US version (SLUS-01066, including the Greatest Hits release) and the English European version (SLES-02908).
 
 **Use it here:** https://shualyons.github.io/thps2-save-editor/
 
-![The skater screen: stats, cash, decks and medals for Tony Hawk](screenshots/skater.jpg)
+![The skater carousel: Tony Hawk's spinning deck, stats and money](screenshots/skater.jpg)
 
 ## What you can edit
 
@@ -15,6 +15,7 @@ A browser-based save editor for **Tony Hawk's Pro Skater 2** on the PlayStation 
 - Decks unlocked
 - Every goal on every level, gold medals, and cash icons collected
 - One-click "Complete career" and "Max all stats"
+- Created skaters' names and hometowns
 
 **Shared by all skaters**
 
@@ -22,14 +23,19 @@ A browser-based save editor for **Tony Hawk's Pro Skater 2** on the PlayStation 
 - Secret skaters: McSqueeb, Spider-Man, Officer Dick and Private Carrera
 - Secret levels: Chopper Drop and Skate Heaven
 - All 14 cheats
+- High scores: every level's top 8, with initials, skater and score
 
 The editor keeps the game's own bookkeeping in step, so it can't create a career the game couldn't. For example, "100% goals and cash" ticks itself only when every other goal and cash icon in that level is done, and cash can never be more than the career total.
 
 There's also undo, reset, and a warning if you try to leave with unsaved changes.
 
+Skaters are picked like on the game's select screen: flick through them with the arrows (or your keyboard's arrow keys), or jump straight to one. Each skater has their own original PS1-style deck spinning above their name, drawn with chunky low-resolution textures, wobbly pixel-snapped corners and dithered colour. A **Spin deck** button starts or stops it, and the editor remembers your choice.
+
 ![A level's goal list and cash icons](screenshots/career.jpg)
 
 ![The gap list, with every Hangar gap ticked off](screenshots/gaps.jpg)
+
+![High scores for each level](screenshots/scores.jpg)
 
 ## How to use it
 
@@ -44,7 +50,7 @@ There's also undo, reset, and a warning if you try to leave with unsaved changes
 - Load your career from the memory card, not from an emulator save state. Save states aren't read by the editor, and loading an old one can overwrite your edited card.
 - Keep a backup of your memory card file.
 - Don't use edited saves for RetroAchievements or competitive runs.
-- Only the US version is supported. European and Japanese saves are recognised and refused with a message.
+- The US version (SLUS-01066) and the English European version (SLES-02908) are supported. The other European versions (SLES-02909 and SLES-02910) and the Japanese version are recognised and refused with a message until they've been tested.
 - Everything happens in your browser. Your memory card isn't uploaded anywhere.
 
 <img src="screenshots/phone.jpg" alt="The editor on a phone" width="300">
@@ -56,8 +62,10 @@ THPS2 career saves have no checksum, so the game can't tell an edited save from 
 - cash, career total and stats
 - goals (the goal order was confirmed in the Hangar; the other levels follow StrategyWiki's goal lists), gold medals, cash icons and decks
 - the gap list, cheats, secret skaters and secret levels
+- high scores (including a 7-digit score) and created skaters' names
+- the English European version, with one of every kind of edit
 
-The gap names and their order come from the PC version's gap table (see Credits). The number of gaps matches the PS1 save for every level, and a real first Hangar run found the first two gaps on the list, both on the halfpipe. The order hasn't yet been checked gap by gap in the PS1 game.
+The gap names and their order come from the PC version's gap table (see Credits). The number of gaps matches the PS1 save for every level, and a test in the game confirmed the order at a gap where the possible orders disagree (Instrument Landing in the Hangar).
 
 The editor was also tested against real memory cards (including a 100% save), with 20,000 random edits, damaged and malformed files, and attempts to inject script code through save and skater names.
 
@@ -80,9 +88,10 @@ For anyone researching THPS2 saves. Offsets are from the start of the save (the 
 | Gap list | `0x1694`, 12 bytes per level, shared by all skaters. A gap's bit is its position among that level's gaps in the game's gap table |
 | Cheats | `0x17A8`, 17 entries of 4 bytes: unlocked, skater, state, padding |
 | Created skater names | `0x18BC`, every `0x80` bytes |
+| High scores | `0x13D4`, one table of 8 entries per level (64 bytes). Each entry: 3 initials, skater (byte), score (32-bit), highest first |
 | Unlock flags | `0x1AC0`: `0x04` Private Carrera, `0x3B` Chopper Drop and Skate Heaven |
 
-There's no checksum. Levels open from the career total and medals rather than stored flags.
+There's no checksum. Levels open from the career total and medals rather than stored flags. The English European version uses exactly the same layout; only the save name differs (`BESLES-02908…` instead of `BASLUS-01066…`).
 
 ## Credits
 
@@ -93,7 +102,7 @@ There's no checksum. Levels open from the career total and medals rather than st
 - Gap names, points and order: the THPS2 gap table in DCxDemo's [THPS2 Cumulative Patch](https://github.com/DCxDemo/THPS2-Cumulative-Patch)
 - Reference values for a finished career: a 100% save shared on GameFAQs
 - Fonts: Barlow and Barlow Condensed by the Barlow Project Authors, and Sedgwick Ave Display by the Sedgwick Ave Project Authors, under the SIL Open Font License (see [OFL.txt](OFL.txt))
-- The background textures (the blurred skate spot, steel bars and spray-paint strips) are original, generated by code. No game artwork is included.
+- The background textures (the blurred skate spot, steel bars and spray-paint strips) are original, generated by code. The deck graphics are original pixel art drawn for this editor, not based on any real board graphics. No game artwork is included.
 - Built with help from Claude, an AI assistant made by Anthropic
 
 Only facts (offsets, formats, names and numbers) were taken from these sources. No code was copied.

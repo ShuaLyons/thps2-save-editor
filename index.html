@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-cBl8xO13UBmxVT4OcvM3nS1ItjUSvZxP427AhaNYll8='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vgW1SAE/oo9ASdKRM8c/YL0VCu4U9VHm21I4rE8pFto='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>THPS2 Save Editor</title>
@@ -150,7 +150,7 @@ footer a:hover { color: var(--gold); }
 }
 .step:hover:not(:disabled) { color: var(--gold); }
 .step:disabled { opacity: .3; cursor: not-allowed; }
-input[type="number"], input[type="search"], select {
+input[type="number"], input[type="search"], input[type="text"], select {
   font: 800 italic 1.3rem/1.2 var(--display); color: var(--ink); background: var(--inset);
   border: 3px solid; border-color: var(--bevel-in); border-radius: 7px; padding: 5px 10px; min-height: 44px;
 }
@@ -200,7 +200,30 @@ label { cursor: pointer; }
 .panel { padding: 8px 0 40px; }
 
 /* skaters: roster + detail */
-.skaters { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 24px; align-items: start; }
+.skaters { display: block; }
+/* skater carousel: one skater at a time, arrows either side, like the game's select screen */
+.picker { padding: 22px 20px 18px; }
+.picker-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; }
+.picker-mid { text-align: center; min-width: 0; }
+/* the spinning deck: drawn at 56x80 and shown at 2x for chunky PS1 pixels */
+.deck-view { display: block; width: 112px; height: 160px; margin: -6px auto 4px; image-rendering: pixelated; background: radial-gradient(ellipse 50% 46% at 50% 50%, rgba(127, 151, 177, .22), transparent 70%); }
+.spin-toggle { font: 800 italic .78rem/1 var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: none; border: 2px solid var(--steel-lo); border-radius: 999px; padding: 5px 10px; margin: 0 auto 10px; cursor: pointer; }
+.spin-toggle:hover { color: var(--gold); border-color: var(--gold); }
+.picker-name { font: 600 clamp(1.7rem, 4.6vw, 2.9rem)/1.05 var(--body); text-transform: uppercase; letter-spacing: .06em; text-shadow: 3px 3px 0 var(--shadow); overflow-wrap: anywhere; }
+.picker-sub { margin: 8px 0 0; font: 800 italic 1rem var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.picker-sub .lock { color: var(--red); margin-left: .6em; }
+.picker-arrow { width: 64px; height: 64px; flex: none; padding: 0; border-radius: 50%; cursor: pointer; display: grid; place-items: center; border: 3px solid; border-color: var(--bevel); background: radial-gradient(circle at 40% 32%, #46699a, #1a3050 70%); box-shadow: 0 4px 0 var(--shadow); }
+.picker-arrow::before { content: ""; width: 22px; height: 28px; background: var(--orange); filter: drop-shadow(2px 2px 0 var(--shadow)); }
+.picker-arrow.prev::before { clip-path: polygon(100% 0, 0 50%, 100% 100%); margin-right: 5px; }
+.picker-arrow.next::before { clip-path: polygon(0 0, 100% 50%, 0 100%); margin-left: 5px; }
+.picker-arrow:hover::before { background: var(--gold); }
+.picker-arrow:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--shadow); }
+.picker-jump { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-top: 16px; }
+.picker-jump .m-lab { font-size: .98rem; }
+@keyframes slide-next { from { transform: translateX(46px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide-prev { from { transform: translateX(-46px); opacity: 0; } to { transform: none; opacity: 1; } }
+.picker-name.slide-next { animation: slide-next .18s ease-out; }
+.picker-name.slide-prev { animation: slide-prev .18s ease-out; }
 .roster h3 { font: 800 italic .95rem var(--display); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 4px; }
 .roster h3:first-of-type { margin-top: 0; }
 .roster ol { list-style: none; margin: 0; padding: 0; }
@@ -215,11 +238,12 @@ label { cursor: pointer; }
   content: ""; width: .42em; height: .62em; flex: none; background: var(--orange); clip-path: polygon(0 0, 100% 50%, 0 100%); filter: drop-shadow(1px 1px 0 var(--shadow));
 }
 .plate .lock { margin-left: auto; font-size: .78rem; color: var(--red); }
-.roster-pick { display: none; width: 100%; }
+.roster-pick { max-width: 100%; }
 
 .sk-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
 .pnl { min-width: 0; }
-.sk-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; margin-bottom: 12px; }
+.sk-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.sk-title { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; }
 .skater-name { font: 600 clamp(1.5rem, 3vw, 2.05rem)/1.05 var(--body); text-transform: uppercase; letter-spacing: .06em; text-shadow: 2px 2px 0 var(--shadow); overflow-wrap: anywhere; }
 .skater-kind { font: 800 italic .95rem var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--ink); text-align: right; }
 .skater-kind .lock { display: block; color: var(--red); }
@@ -286,6 +310,15 @@ label { cursor: pointer; }
 
 /* gaps */
 .gap-total { font: 800 italic clamp(1.6rem, 4vw, 2.2rem)/1 var(--display); text-transform: uppercase; text-shadow: 2px 2px 0 var(--shadow); margin: 4px 0 12px; }
+.cas-text { width: 11em; max-width: 100%; }
+.hs-table { border-collapse: collapse; width: 100%; max-width: 680px; }
+.hs-table th { font: 800 italic .95rem var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: left; padding: 4px 8px; }
+.hs-table td { padding: 5px 8px; border-bottom: 2px solid var(--steel-dk); }
+.hs-table tr:last-child td { border-bottom: 0; }
+.hs-rank { font: 800 italic 1.25rem var(--display); color: var(--gold); text-shadow: 1px 1px 0 var(--shadow); width: 2em; }
+input.ini { width: 4.4em; text-transform: uppercase; letter-spacing: .14em; }
+.hs-table select { font-size: 1rem; max-width: 13em; }
+.hs-table input[type="number"] { width: 8.6em; }
 .gap-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 10px 0 16px; }
 .gap-tools label { display: flex; align-items: center; gap: 10px; }
 input[type="search"] { width: 17em; max-width: 100%; font-size: 1.1rem; }
@@ -324,9 +357,10 @@ footer p { max-width: 92ch; }
   .insert { grid-template-columns: 1fr; }
   .skaters { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .sk-side { grid-template-columns: minmax(0, 1fr); }
-  .roster > :not(.roster-pick) { display: none; }
-  .roster.pnl { padding: 22px 14px 14px; }
-  .roster-pick { display: block; }
+  .picker { padding: 22px 12px 14px; }
+  .picker-row { gap: 8px; }
+  .picker-arrow { width: 52px; height: 52px; }
+  .picker-arrow::before { width: 18px; height: 23px; }
   .goals { grid-template-columns: 1fr; }
   .level > summary { grid-template-columns: 1.1em 1fr; }
   .lv-prog, .lv-cash, .level > summary .meter { grid-column: 2; }
@@ -342,6 +376,14 @@ footer p { max-width: 92ch; }
   .dots { grid-column: 1 / -1; justify-content: space-between; }
   .blk { width: 24px; height: 24px; }
   .money { grid-template-columns: max-content minmax(0, 1fr); }
+  /* high scores: place, initials and skater on one line, the score underneath */
+  .hs-table thead { display: none; }
+  .hs-table tr { display: grid; grid-template-columns: 2em 4.6em minmax(0, 1fr); gap: 6px 8px; align-items: center; padding: 6px 0; border-bottom: 2px solid var(--steel-dk); }
+  .hs-table tr:last-child { border-bottom: 0; }
+  .hs-table td { padding: 0; border: 0; }
+  .hs-table td:last-child { grid-column: 2 / -1; }
+  .hs-table select { max-width: 100%; width: 100%; }
+  .hs-table input[type="number"] { width: 100%; }
   input[type="number"] { width: 100%; min-width: 0; }
   .m-val { min-width: 0; }
 }
@@ -351,7 +393,7 @@ footer p { max-width: 92ch; }
   .blk { width: 22px; height: 22px; }
   .medals .coin { width: 54px; height: 54px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .picker-name { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -363,7 +405,7 @@ footer p { max-width: 92ch; }
       <div class="wrap top-in">
         <div>
           <h1 class="brand">THPS2 save editor</h1>
-          <p class="tagline">Edit careers on a Tony Hawk's Pro Skater 2 memory card (PlayStation, US version).</p>
+          <p class="tagline">Edit careers on a Tony Hawk's Pro Skater 2 memory card (PlayStation, US and European versions).</p>
         </div>
         <a class="btn small gh-link" href="https://github.com/shualyons/thps2-save-editor" target="_blank" rel="noopener noreferrer">View on GitHub<span class="sr-only"> (opens in a new tab)</span></a>
       </div>
@@ -384,7 +426,7 @@ footer p { max-width: 92ch; }
           <span class="pnl-tab" aria-hidden="true">Read first</span>
           <h2 class="sr-only">Before you start</h2>
           <ul>
-            <li>This works with the US version of the game (SLUS-01066), including the Greatest Hits release.</li>
+            <li>This works with the US version of the game (SLUS-01066, including the Greatest Hits release) and the English European version (SLES-02908).</li>
             <li>Keep a copy of your memory card file before editing.</li>
             <li>Save your career to the memory card in the game first. Emulator save states aren't read here, and loading an old save state can overwrite your edited card.</li>
             <li>Don't use edited saves for RetroAchievements or competitive runs.</li>
@@ -411,13 +453,15 @@ footer p { max-width: 92ch; }
           <div class="tabs" role="tablist" aria-label="Sections">
             <button class="tab sel-arrows" role="tab" id="tab-skaters" aria-controls="panel-skaters" aria-selected="true" type="button">Skaters</button>
             <button class="tab" role="tab" id="tab-gaps" aria-controls="panel-gaps" aria-selected="false" tabindex="-1" type="button">Gap list</button>
+            <button class="tab" role="tab" id="tab-scores" aria-controls="panel-scores" aria-selected="false" tabindex="-1" type="button">High scores</button>
             <button class="tab" role="tab" id="tab-unlocks" aria-controls="panel-unlocks" aria-selected="false" tabindex="-1" type="button">Cheats and unlocks</button>
           </div>
           <div class="panel skaters" id="panel-skaters" role="tabpanel" aria-labelledby="tab-skaters">
-            <nav class="pnl roster" id="roster" aria-label="Skaters"></nav>
+            <div class="pnl picker" id="roster" role="group" aria-label="Select skater"></div>
             <div id="skater"></div>
           </div>
           <div class="panel" id="panel-gaps" role="tabpanel" aria-labelledby="tab-gaps" hidden></div>
+          <div class="panel" id="panel-scores" role="tabpanel" aria-labelledby="tab-scores" hidden></div>
           <div class="panel" id="panel-unlocks" role="tabpanel" aria-labelledby="tab-unlocks" hidden></div>
         </div>
       </section>
@@ -501,8 +545,9 @@ const Core = (() => {
 
   // --- THPS2 US career save ---
   // Layout confirmed against real saves loaded in DuckStation. There is no checksum.
-  const US = "BASLUS-01066";
-  const OTHER_VERSIONS = [["BESLES-02908", "European"], ["BESLES-02909", "European"], ["BESLES-02910", "European"], ["BISLPM-86751", "Japanese"]];
+  // versions confirmed in the game: US (SLUS-01066, including Greatest Hits) and English European (SLES-02908) share one layout
+  const SUPPORTED = [["BASLUS-01066", "US"], ["BESLES-02908", "Europe"]];
+  const OTHER_VERSIONS = [["BESLES-02909", "another European version (SLES-02909)"], ["BESLES-02910", "another European version (SLES-02910)"], ["BISLPM-86751", "the Japanese version (SLPM-86751)"]];
   const FORMAT = [0x00, 0x28, 0x07, 0x00], FORMAT_AT = 0x200;  // same in every career save seen
   const REC = 0x204, REC_SIZE = 0xE4, SKATERS = 20;             // one record per skater
   const R_COUNT = 0x00, R_GOLDS = 0x03, R_EARN = 0x04, R_CASH = 0x08, R_GOALS = 0x0C, R_DECKS = 0x2C, R_STATS = 0x30, R_ICONS = 0x3C;
@@ -511,6 +556,9 @@ const Core = (() => {
   const CAS_NAME = 0x18BC, CAS_SIZE = 0x80;
   const FLAGS = 0x1AC0;                 // unlock flags. 4 = Private Carrera; the rest open the secret levels
   const FLAG_CARRERA = 0x04, FLAG_SECRET_LEVELS = 0x3B;
+  const HISCORES = 0x13D4, HS_TABLE = 64, HS_ENTRY = 8, HS_ROWS = 8; // tables 0-9 follow the levels; table 10 is left alone
+  const MAX_SCORE = 9999999;
+  const CAS_TEXT = /^[A-Za-z0-9 -]{1,15}$/;                           // what real saves contain; 16 bytes with an end marker
   const MAX_MONEY = 150000, MAX_STAT = 10;
   const GOAL_100 = 0x200, GOLD = 0x400, MEDALS = 0x1C00, COMP_ALL_CASH = 0x8000;
 
@@ -596,12 +644,12 @@ const Core = (() => {
   }
   const isCareer = d => d.length >= BLOCK && d[0] === 0x53 && d[1] === 0x43 && FORMAT.every((b, i) => d[FORMAT_AT + i] === b);
   function identify(name, d) {
-    if (name.startsWith(US)) {
+    for (const [prefix, region] of SUPPORTED) if (name.startsWith(prefix)) {
       if (!isCareer(d)) return { ok: false, msg: "This Tony Hawk's Pro Skater 2 save isn't a career save (it may be a park). Only career saves can be edited." };
-      return { ok: true, msg: "" };
+      return { ok: true, msg: "", region };
     }
     for (const [prefix, label] of OTHER_VERSIONS)
-      if (name.startsWith(prefix)) return { ok: false, msg: `This is a save from the ${label} version of Tony Hawk's Pro Skater 2. Only the US version is supported for now.` };
+      if (name.startsWith(prefix)) return { ok: false, msg: `This is a save from ${label} of Tony Hawk's Pro Skater 2, which hasn't been tested yet. Only the US version and the English European version (SLES-02908) are supported for now.` };
     return { ok: false, msg: "This isn't a Tony Hawk's Pro Skater 2 save. Pick another save from the list." };
   }
   // values the game never writes on its own (for example from cheat devices)
@@ -742,6 +790,45 @@ const Core = (() => {
     if (on) { if (!d[o]) { d[o] = 1; d[o + 1] = CHEAT_SKATER[i]; } }
     else { d[o] = 0; d[o + 1] = 0; d[o + 2] = CHEAT_DEFAULT_STATE(i); }
   }
+  // --- high scores: 8 entries per level of initials (3 bytes), skater (1 byte) and score (4 bytes) ---
+  function highScores(d, t) {
+    return Array.from({ length: HS_ROWS }, (_, i) => {
+      const o = HISCORES + t * HS_TABLE + i * HS_ENTRY;
+      return { initials: String.fromCharCode(d[o], d[o + 1], d[o + 2]), skater: d[o + 3], score: u32(d, o + 4) };
+    });
+  }
+  function cleanInitials(s) {
+    const v = String(s).toUpperCase().replace(/[^A-Z ]/g, "").slice(0, 3);
+    return /[A-Z]/.test(v) ? v.padEnd(3, " ") : null;
+  }
+  // change one entry, then keep the table in order from highest to lowest; returns where the entry ended up
+  function setHighScore(d, t, i, e) {
+    if (!(t >= 0 && t < LEVELS.length && i >= 0 && i < HS_ROWS)) return i;
+    const rows = highScores(d, t).map((r, k) => ({ ...r, k }));
+    rows[i] = { initials: cleanInitials(e.initials) || rows[i].initials, skater: clampInt(e.skater, 0, SKATERS - 1), score: clampInt(e.score, 0, MAX_SCORE), k: i };
+    rows.sort((a, b) => b.score - a.score || a.k - b.k);
+    rows.forEach((r, j) => {
+      const o = HISCORES + t * HS_TABLE + j * HS_ENTRY;
+      for (let c = 0; c < 3; c++) d[o + c] = r.initials.charCodeAt(c) & 255;
+      d[o + 3] = r.skater; set32(d, o + 4, r.score);
+    });
+    return rows.findIndex(r => r.k === i);
+  }
+  // --- created skaters' name and hometown ---
+  const casAt = (n, which) => CAS_NAME + (n - 13) * CAS_SIZE + (which === "town" ? 16 : 0);
+  function casText(d, n, which) {
+    if (n < 13 || n > 16) return "";
+    let s = "";
+    for (let i = 0, o = casAt(n, which); i < 16 && d[o + i]; i++) s += d[o + i] >= 0x20 && d[o + i] < 0x7F ? String.fromCharCode(d[o + i]) : "?";
+    return s;
+  }
+  const validCasText = s => CAS_TEXT.test(s) && s.trim().length > 0;
+  function setCasText(d, n, which, s) {
+    if (n < 13 || n > 16 || !validCasText(s)) return false;
+    const o = casAt(n, which);
+    for (let i = 0; i < 16; i++) d[o + i] = i < s.length ? s.charCodeAt(i) : 0;
+    return true;
+  }
   const carrera = d => (u32(d, FLAGS) & FLAG_CARRERA) !== 0;
   const secretLevels = d => (u32(d, FLAGS) & FLAG_SECRET_LEVELS) === FLAG_SECRET_LEVELS;
   function setFlags(d, mask, on) { const v = u32(d, FLAGS); set32(d, FLAGS, on ? v | mask : v & ~mask); }
@@ -749,7 +836,8 @@ const Core = (() => {
   const setSecretLevels = (d, on) => setFlags(d, FLAG_SECRET_LEVELS, on);
 
   return {
-    CARD_SIZE, BLOCK, SKATERS, MAX_MONEY, MAX_STAT, LEVELS, STATS, CHEAT_NAMES, TOTAL_GAPS,
+    CARD_SIZE, BLOCK, SKATERS, MAX_MONEY, MAX_STAT, MAX_SCORE, LEVELS,
+    highScores, cleanInitials, setHighScore, casText, validCasText, setCasText, STATS, CHEAT_NAMES, TOTAL_GAPS,
     parseMemoryCard, readSave, writeSave, cardFile, identify, careerName, oddValues,
     skater, skaterName, kindOf, deckRange,
     setEarnings, setCash, setStat, maxStats, setDecks, setGoal, setGold, setIcons, completeLevel, completeCareer,
@@ -760,7 +848,7 @@ const Core = (() => {
 
 // ---- page ----
 const $ = id => document.getElementById(id);
-const st = { card: null, fileName: "", saveIdx: -1, save: null, base: null, undo: [], skater: 0, tab: "skaters", open: new Set([0]), gapOpen: new Set(), gapQuery: "" };
+const st = { card: null, fileName: "", saveIdx: -1, save: null, base: null, undo: [], skater: 0, tab: "skaters", open: new Set([0]), gapOpen: new Set(), gapQuery: "", hsOpen: new Set([0]) };
 const fmt = n => n.toLocaleString("en-US");
 const money = n => "$" + fmt(n);
 const COMPS = [2, 5, 7];
@@ -800,7 +888,7 @@ function edit(fn, msg) {
 }
 function refresh() {
   const focusId = document.activeElement && document.activeElement.id;
-  renderRoster(); renderSkater(); renderGaps(); renderUnlocks();
+  renderRoster(); renderSkater(); renderGaps(); renderScores(); renderUnlocks();
   $("undo").disabled = !st.undo.length;
   $("reset").disabled = !isDirty();
   if (focusId && $(focusId)) $(focusId).focus();
@@ -841,7 +929,7 @@ function loadBuffer(name, buf) {
   const sel = $("saves"); sel.replaceChildren();
   const careers = card.saves.map(s => {
     const data = Core.readSave(card, s), id = Core.identify(s.name, data);
-    return { s, ok: id.ok, label: id.ok ? `${Core.careerName(data) || "Career"} (THPS2 career)` : s.name || "Unnamed save" };
+    return { s, ok: id.ok, label: id.ok ? `${Core.careerName(data) || "Career"} (THPS2 career, ${id.region})` : s.name || "Unnamed save" };
   });
   careers.forEach((c, i) => sel.append(h("option", { value: i, text: c.label })));
   let pick = careers.findIndex(c => c.ok);
@@ -875,29 +963,234 @@ function openSave(i) {
 function setEditable(on) {
   ["save", "undo", "reset"].forEach(id => $(id).disabled = !on);
   for (const t of document.querySelectorAll(".tab")) t.disabled = !on;
-  if (!on) { $("roster").replaceChildren(); $("skater").replaceChildren(); $("panel-gaps").replaceChildren(); $("panel-unlocks").replaceChildren(); }
+  if (!on) { $("roster").replaceChildren(); $("skater").replaceChildren(); $("panel-gaps").replaceChildren(); $("panel-scores").replaceChildren(); $("panel-unlocks").replaceChildren(); }
 }
+
+// ---- PS1-style spinning deck ----
+// An original low-poly skateboard for each roster slot, spinning like a PS1 select screen.
+// Tiny textures sampled without perspective correction (the PS1 texture warp), corners snapped
+// to whole pixels, and 15-bit colour with dithering. The deck graphics are original patterns,
+// not real board brands.
+const Deck = (() => {
+  const W = 56, H = 80, F = 146, DIST = 3.6, PITCH = .22, CY = -.04, TW = 16, TH = 48;
+  const LEN = 1.6, WID = .42, THICK = .045;
+  const hex = s => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
+  const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const norm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+  const avg = ps => mul(ps.reduce(add, [0, 0, 0]), 1 / ps.length);
+
+  // ---- deck graphics: original 16x48 pixel art, nose at the top, one per roster slot ----
+  // Themed on each name (Hawk, Brazil, Knight, Campfire...), not on any real board art.
+  // Each is [name, wheel colour, palette, pixels]; a pixel is one hex digit picking a palette colour.
+  const ART = [
+    ["Hawk", "#e9a915", "eadbbd c98a3e 8a5a32 e9a915 3f2617 f7efdc b8552b", "000000000000000000000000000000000000000000000000012000122100021000120001100021000001200000021000200012000021000212000120021000210000000000000000000000000000000000000000000000000000000330000000000000444400000000000044440000000000000440000000040000455400004042400425524004244224422552244224422222255222222445252525525252544252524554252524404525455452540440044445544440040000045555400000000003455430000000000466664000000000466666640000000046666664000000046666666640000004444444444000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200012210002100012000110002100000120000002100020001200002100021200012002100021000000000000000000000000000000000000000000000000"],
+    ["Brazil", "#f2d21b", "1e8f3a f2d21b 1f3d8c ffffff", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000000000001100000000000001111000000000000111100000000000111111000000000111111110000000011111111000000011222222110000001222222221000001222232222210001122222222221100112223333222110011333222233311001122222223221100012223222222100000122222322100000011222222110000000111111110000000011111111000000000111111000000000001111000000000000111100000000000001100000000000000110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"],
+    ["Knight", "#f0c94a", "2b1f3a c9a227 5c4510 f0c94a", "010000000000001001000000000000100100000000000010010010101010101001000000000000100100000000000010010101010101001001000000000000100100000000000010010000000000001001000000000000100100000000000010010000000000001001000000000000100100000222000010010000233320001001000233333200100100233233332010010233333333201001023333333320100100222333332010010000233333201001000233333200100100233333320010010023333320001001000233332000100100023333200010010023333332001001023333333320100102222222222010010233333333201001022222222220100100000000000010010000000000001001000000000000100100000000000010010000000000001001000000000000100100000000000010010000000000001001000000000000100100101010101010010000000000001001000000000000100101010101010010010000000000001001000000000000100100000000000010"],
+    ["Campfire", "#f39c12", "0e1838 ffffff ffe27a 13204a e2701c c95a14 2a1406 f39c12 d12f1f 6b3d1f 1d3b25", "0000000000000000000000000100000002100000000000000000000000000000000000200000000100001001000000000000000002000201000000002000000000000000001200000010000110020000000000210000000000000020000010000000000001000000000000000000000033333333333333333333333453333333333333345333333333333344553333333333334455333333333334445553333333334444555533333333444455553333333444466555533333444446655555333344446666555533344444666655555333333333333333333333333233333333333333223233333333333277223333333333377877333333333378888773333333333788873333333333999999993333aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    ["Runes", "#8fd3ff", "6b6f76 4a4d53 8fd3ff", "000000010000000100000201000000010000020120000001000002020000000100000221000000010000020100000001111112111111111100010200000100000001000000010000000100000001000000010000000100000001000000010000000100000001000011111121212111110000000222000001000000012000000100000001200000010000000120000001000000012000000100000001200000011111111111111111000100020001000000010022200100000001020202010000000100020001000000010002000100000001000200010000111111121111111100000001000000010000000120000001000000020200000100000021002000010000000202000001000000012000000111111112121111110001002000210000000100000001000000010000000100000001000000010000000100000001000000010200020100001111122122111111000002020200000100000201020000010000020102000001000002010200000100000201020000010000000100000001"],
+    ["Coast", "#2a8fd0", "7fc8f8 ffe27a 9bd4fa 2e8b3d bfe6ff 6b4423 8a5a32 1f78b4 e9f4ff 2a8fd0 e9d29a d6bb7c", "00000000000000000000000000000000000000000000000000000000000110000000000000111100000000000111111000000000011111100000000000111100222222222221122222222222222222222222222222222222222222222222222222222222222222222222222223222222222222222322332222222332232332224444443333334444444444443334444444444433333333444444433435344334444433433533444444444443654344444444444465444444444444446544444477777777657777777777777765777777788878865888788887778776577787779999999659999999999999965999999999999996599999999999999659999999aaaaaaa65aaaaaaaaaaaaa655aaaaaaaaaaaab65aaaaaaaaaaaaba65aaaabaaabaaaaa65aaaaaaaaaaaaaa65aaaaabaaaaaaaa65abaaaaaaaaaaaa65aaaaaaaaaaaaa655aaaaaaaaaaaaa65aaaaabaaaaaaab65aaaaaaaaaaaaaa65baaaaaaaaaaaaa65abaaaaaaaaaaaaaaaaaaaaaaabaaaabaaaaaaaaabaaaaaaaaaaaaaaaa"],
+    ["Lasers", "#e84393", "07070d ffffff 8fd3ff d12f1f 22c55e e84393", "010000000000000000000000002000000000000000000000130000000000000011300000000000003130000000000000311300000000000003130000000000410031300000000411003130000000041400031300000041140003113000004140000231300004114200003113000414000000031300411400000003113041400000000031134140000000000314140000000000031414000000000000414000000000000041430000000000041413000015000004141130001120004140313000515000414003130005150414000313000511541400003130002151400000311300511540100003130005115000000311000451500000003100215115000000000041451500000000041140515000000004140051150000004114000515000000414000005150000011400000511500001400000005150000000000000511500000000000005115000000000000051500000000000005115000000000000051500000002000000515000000000000051100000000000000510000000000000002"],
+    ["Gears", "#e0b040", "2d3a4a 8a96a6 e0b040 b9c3cf c87533", "000000000000000000000000000000000000000000000000000010001000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002200000000000000220000000000220222202200000022222222220000000222222220000000222200222200002222200002222200222220000222220000222200222200000002222222200000002222222222000000220222202200000000002200000000000000220000000000000000000000000300030000000000330303300000000003333304400044003333333044444003330003334444400333000344440444403333334444044440033333004444400033030330444440000300030440004400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100010001000000000000000000000000000000000000000000000000000"],
+    ["Speakers", "#22c55e", "1c1c21 d12f1f f1c40f 22c55e 3a3a44 5a5a66 c9c9d4 9a9aa8", "000000000000000000000010000100000000101001010000000220220202200000022222022220000033333333333000003333333333330000333333333333000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044440000000000044554400000000004566540000000000456654000000000044554400000000000444400000000000000000000000000000000000000000004444440000000004555555400000004555555554000004555577555540000455577775554000045577667755400004557766775540000455577775554000045555775555400000455555555400000004555555400000000044444400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000001000000101000010100002020220022020000202222002222000033333303333300003333333333330000333333333333000000000000000000"],
+    ["Rain", "#a9d6ff", "2e3c50 e3e8ee 3a4b63 b4bcc8 a9d6ff 45597a 7fb6e8", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011110000000000011111100000000011111111000022223333333322222222222222222222222222222222222222222222222222222222422222222222222422222242222222222222242222222242222222222222242422242222222222422242222222222222222222222222222222422222222222222422222222222422222222222222422222222222222222222222222222225555555555554555555555555454455555555555455455555555555555555555555555455555555555555455555555555555555545555555555555545555555555555555555555455555555555455455545555555455555545555555555555555555555555555555555666666666655555555555555555555555555555555555"],
+    ["Oars", "#c0392b", "56aee8 2a6fb0 c0392b c49a5a 3f2617", "000011111111111111111111111111111111111111111111111111111111000011111111000011111111000011111111000011111111111111111111111111111111111111111111111111111111000011111111000011111211000011111121022011111111122112221111111122211222211111122221122221111112222011222111000222111113000011113111000331111113311111113111111311111111331111331111111113111131000011111131030011111111003013111111000011133111111111111113311111111111111331111111111111311311000011111131030011111111030011311111000033111133111111113111111311111113311111133111111311111111300011141111000041111114000011114111000011111111111111111111111111111111111111111111111111111111000011111111000011111111000011111111000011111111111111111111111111111111111111111111111111111111000011111111000011111111000011111111"],
+    ["Steam", "#c87533", "1f3a2e c87533 e3e8ee 3f2617 f6f1e7 d12f1f", "000000000000000000000000000000000011100022000000001110022220000000111002222222000011100022222200001110000022220000111000002222000011100000000000001110000000000000111000000000000011100000000000001110000000000000111000000000000011100333300000001110344443000000111344444530000011134434543000001113444544300000111344444430000011103444430000001110033330000000111000000000000011100000000000001110000000000000111000000000000011100000000000001110000000000000111000000000000011100000000000001111111111110000000000000111000000000000221100000000000222210000000022222221000000002222221100000000222201110000000222220111000000222200011100000022220001110000000220000111000000000000011100000000000001110000000000000111000000000000011100000000000001110000000000000111000000000000000000"],
+    ["Tomcat", "#b6f24a", "3b2a5c 7a5aa8 111114 b6f24a d9d9e0 e88aa6", "000000000000000000000000000000000000000000000000001001001001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000022200000000000022222000000000022222222222222222222222222222222222223322222222332222322222222223222222222222222222422222255222222424222222222222420222222222222220002222222222220000002222222200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100100100100000000000000000000000000000000000000000000000000000000000000000000"],
+    ["Lion", "#e8b25a", "1f5f5b 7a3a12 a8521a e8b25a 2b1608 5a2a0e f6dfb0", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000001222222100000002222222222000002222233222220001222333333222100222334334332220022233333333222002233333563332201223333366333221022233333333222002223333333322200122233333322210002222233222220000022222222220000000122222210000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"],
+    ["Rocket", "#d12f1f", "0b1430 ffffff ffe27a d12f1f e9edf1 8fd3ff 2a8fd0 8a96a6 f39c12", "000000000000000000010000001000000000000000000000000000000000000000000000000000000000000000000000000000001000000000200000000002000000000000000000000000000000000000002000100000000000000000010000000000000000000000000003300000000000003333000000000000333300000000000444444500000050044444400000000004666640000000000466664000000000044444400000000004444440000000000444444000000000044444400000000004444440000000003444444310000000334444330000000033077033000000000002200000000000002882000000000000088000000000000050000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000020000000050000000000000000000000200000000000000000000000000000002000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"],
+    ["Cactus", "#2f7d3a", "5b2a86 a8366f 2f7d3a 57a85f e8604c f39c12 ffd23f c48b45 d9a35a", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112211111111111111321111111111111122111111111111112211111114444444324424444444444422442444444444442244244444444444324424444444424422442444444442442244244444444244324424444444424422222444455552552255555555555255325555555555522222555555555555662266555555555666326665555555566622666555555566662266665557888878328788887888878822788887888878882288887888878888328887888878888722887888878888782287888878888788227888878888788887888878888788887888878888788887888878888788887888878888788887888878888788887888878888788"],
+    ["Planets", "#e8822a", "0b0b2a c9c9ff ffffff e8822a e9d29a c96a1c 3b8fd4 56c07a b9c3cf", "000000000000001000000000220000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000331000000000003333331000000444333333444004440355555530444444033333333044400444444444444000000033333300000000000033000000000100000000000000000000000002000000000000000000000000000000000000000000002000000000060000000000010666660000000001066766000100000206666600001000000666660000000000000600000088000000000000008820000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000002000000000000000000000000000000002010000000020000000000000000000000000000000000000000020000000000000000000000000000000000000000000"],
+    ["Siren", "#f2f2ee", "c0262c ffd6d6 ffffff f2f2ee 17171c 1f4fbf d6e4ff", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000010000000000100001000010000001000100010000000011111010000000001122110000000000122221000000111112222101111000001122110000000000011110000000000010000010000000010001000100000010000100001000000000010000000000000001000000000000000000000003333333333333333444444444444444455555555555555555555555555555555555555556555555555555555655555555556555565555655555565556555655555555666665655555555566226655555555556222265555556666622226566665555566226655555555555666655555555555655555655555555655565556555555655556555565555555555655555555555555565555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"],
+    ["Camo", "#3d4a2a", "7a8a52 55693a 1d221a 3d4a2a 6b5a3a", "000112200000000000112222000000330112222200000333011222220000033331122222000033333112222200003333311122220000333333112220000033333331140000003333333444333000034433334431110004443333331111133444333332111133344433333311113334443333331111333444333332111111134433333211111111113333321111111111333322111111111123322211111111112222201111111111332204444111111133301444441111113333444444411111333344444444111113334444444431111133444444443333111344444444333311134444444443331113444444444333111244444444433311322444444444441122224444444444222222244044444422222224400444442222222441344444222222111334444422222111113444442222211111344444022222111133444402222211113344440222221111333444022222011233333300222002223333310002000222233311000000022221111100000002221111110000000002111110"],
+    ["Skyline", "#ffd23f", "1a1440 e9e3ff f4f0d8 ffffff 2a1d5c 10101c ffd23f 4a2a6e", "000000000000000000000000000000000000000000000000000000001000000000001000000000000000000000222000003000000222220000000000022222000000000000222000000000000000000000010000000001000000000000000000000000300000003000030000000000004444444444441444444444444444444443444444444444444444444344444444344144444344444444444444444444444444414444444444444444444444444444444444444444444444444444444444444554444444444444455444444444445555677777777777555557777775555556555777777555555555677777756565555557777775555556555777777555555555677777756565555555555555555555555555555555555555555555656555555555555555555556555555555555555555656555556565555555555555555555555555555555555555556555655565555555555555555555555555555555555555556565556555555555555555555555555555555555555555555555555555"]
+  ];
+  const DESIGNS = ART.map(([name, wheels, pal, px]) => {
+    const p = pal.split(" ").map(h => hex("#" + h)), tex = new Uint8Array(TW * TH * 3);
+    for (let i = 0; i < TW * TH; i++) tex.set(p[parseInt(px[i], 16)], i * 3);
+    return { name, wheels: hex(wheels), tex };
+  });
+  const GRIP = (() => { // dark grip tape with a little grit
+    const t = new Uint8Array(TW * TH * 3); let s = 9;
+    for (let i = 0; i < TW * TH; i++) { s = (s * 1103515245 + 12345) >>> 0; t.set((s >>> 16) % 5 === 0 ? [62, 65, 71] : [36, 38, 43], i * 3); }
+    return t;
+  })();
+  const WOOD = hex("#c9a46b"), TRUCK = hex("#aab4bf"), PLATE = hex("#7d8794");
+
+  // ---- the board: a curved, rounded deck with trucks and wheels underneath ----
+  function face(out, v, uv, tex, col, hint) {
+    let n = cross(sub(v[1], v[0]), sub(v[2], v[0]));
+    if (dot(n, hint) < 0) { v = v.slice().reverse(); uv = uv && uv.slice().reverse(); n = mul(n, -1); }
+    if (Math.hypot(...n) > 1e-9) out.push({ v, uv, tex, col, n: norm(n) });
+  }
+  function box(out, p, size, col) {
+    const k = [];
+    for (const dz of [-1, 1]) for (const [dx, dy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) k.push([p[0] + dx * size[0] / 2, p[1] + dy * size[1] / 2, p[2] + dz * size[2] / 2]);
+    for (const q of [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]]) {
+      const v = q.map(i => k[i]); face(out, v, null, null, col, sub(avg(v), p));
+    }
+  }
+  function wheel(out, c, r, w, col) { // a 6-sided wheel turning on the x axis
+    const ring = s => Array.from({ length: 6 }, (_, k) => add(c, [s * w / 2, Math.cos(k * Math.PI / 3) * r, Math.sin(k * Math.PI / 3) * r]));
+    const a = ring(-1), b = ring(1);
+    face(out, a, null, null, col, [-1, 0, 0]); face(out, b, null, null, col, [1, 0, 0]);
+    for (let k = 0; k < 6; k++) { const v = [a[k], a[(k + 1) % 6], b[(k + 1) % 6], b[k]]; face(out, v, null, null, col, sub(avg(v), c)); }
+  }
+  function board(design) {
+    const out = [], N = 16, R = WID / 2;
+    const half = y => { const a = Math.abs(y), s = LEN / 2 - R; return a <= s ? R : Math.sqrt(Math.max(0, R * R - (a - s) ** 2)); };
+    const lift = y => { const a = Math.abs(y), s = LEN / 2 - .3; return a > s ? (a - s) ** 2 * 1.4 : 0; };   // kicktails curve up
+    const st = Array.from({ length: N + 1 }, (_, i) => { const y = LEN / 2 - LEN * i / N; return { y, h: half(y), z: lift(y), v: i / N }; });
+    for (let i = 0; i < N; i++) {
+      const a = st[i], b = st[i + 1];
+      for (const side of [-1, 1]) {
+        const P = (s, x, top) => [x * s.h, s.y, s.z + (top ? THICK / 2 : -THICK / 2)];
+        const U = (s, x) => [.5 + x * s.h / WID, s.v];
+        // grip on top, the graphic underneath, wood along the edge
+        face(out, [P(a, 0, 1), P(a, side, 1), P(b, side, 1), P(b, 0, 1)], [U(a, 0), U(a, side), U(b, side), U(b, 0)], GRIP, null, [0, 0, 1]);
+        face(out, [P(a, 0, 0), P(a, side, 0), P(b, side, 0), P(b, 0, 0)], [U(a, 0), U(a, side), U(b, side), U(b, 0)], design.tex, null, [0, 0, -1]);
+        face(out, [P(a, side, 1), P(b, side, 1), P(b, side, 0), P(a, side, 0)], null, null, WOOD, [side, 0, 0]);
+      }
+    }
+    for (const y of [LEN / 2 - .34, -(LEN / 2 - .34)]) {
+      box(out, [0, y, -THICK / 2 - .015], [.17, .11, .03], PLATE);
+      box(out, [0, y, -THICK / 2 - .06], [.36, .05, .05], TRUCK);
+      for (const x of [-.2, .2]) wheel(out, [x, y, -THICK / 2 - .075], .062, .055, design.wheels);
+    }
+    return out;
+  }
+
+  // ---- drawing ----
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  const LIGHT = norm([-.4, .6, -.7]);
+  let canvas = null, ctx = null, img = null, theta = .35, boost = 0, last = 0, running = false, who = -1, faces = [], design = DESIGNS[0];
+  const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // spinning follows the device's reduced-motion setting, but the Spin button can override it (and is remembered)
+  const SPIN_KEY = "thps2-deck-spin";
+  let spin = !still;
+  try { const saved = localStorage.getItem(SPIN_KEY); if (saved === "on" || saved === "off") spin = saved === "on"; } catch (e) { /* storage unavailable */ }
+  function draw() {
+    const px = img.data; px.fill(0);
+    const ct = Math.cos(theta), sn = Math.sin(theta), cp = Math.cos(PITCH), sp = Math.sin(PITCH);
+    const rot = q => { const x = q[0] * ct + q[2] * sn, z = -q[0] * sn + q[2] * ct; return [x, q[1] * cp - z * sp, q[1] * sp + z * cp]; };
+    const view = q => { const r = rot(q); return [r[0], r[1] - CY, r[2] + DIST]; };
+    const proj = q => [Math.round(W / 2 + F * q[0] / q[2]), Math.round(H / 2 - F * q[1] / q[2])];
+    const plot = (x, y, c, a) => {
+      const i = (y * W + x) * 4, off = BAYER[(y & 3) * 4 + (x & 3)] / 2 - 4;
+      for (let k = 0; k < 3; k++) {
+        let v = a < 1 ? px[i + k] * (1 - a) + c[k] * a : c[k];
+        v = Math.max(0, Math.min(255, v + off)) >> 3;              // PS1 colour depth: 5 bits per channel, dithered
+        px[i + k] = (v << 3) | (v >> 2);
+      }
+      px[i + 3] = a < 1 ? Math.max(px[i + 3], Math.round(a * 255)) : 255;
+    };
+    // affine texturing: texture position is blended in screen space, so it warps like on a PS1
+    const tri = (a, b, c, ua, ub, uc, tex, col, shade, alpha) => {
+      let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+      if (area === 0) return;
+      if (area < 0) { [b, c] = [c, b]; [ub, uc] = [uc, ub]; area = -area; }
+      const x0 = Math.max(0, Math.min(a[0], b[0], c[0])), x1 = Math.min(W - 1, Math.max(a[0], b[0], c[0]));
+      const y0 = Math.max(0, Math.min(a[1], b[1], c[1])), y1 = Math.min(H - 1, Math.max(a[1], b[1], c[1]));
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const qx = x + .5, qy = y + .5;
+        const w0 = (c[0] - b[0]) * (qy - b[1]) - (c[1] - b[1]) * (qx - b[0]);
+        const w1 = (a[0] - c[0]) * (qy - c[1]) - (a[1] - c[1]) * (qx - c[0]);
+        const w2 = (b[0] - a[0]) * (qy - a[1]) - (b[1] - a[1]) * (qx - a[0]);
+        if (w0 < 0 || w1 < 0 || w2 < 0) continue;
+        let rgb = col;
+        if (tex) {
+          const u = (w0 * ua[0] + w1 * ub[0] + w2 * uc[0]) / area, v = (w0 * ua[1] + w1 * ub[1] + w2 * uc[1]) / area;
+          const t = (Math.min(TH - 1, Math.max(0, v * TH | 0)) * TW + Math.min(TW - 1, Math.max(0, u * TW | 0))) * 3;
+          rgb = [tex[t], tex[t + 1], tex[t + 2]];
+        }
+        plot(x, y, [rgb[0] * shade, rgb[1] * shade, rgb[2] * shade], alpha);
+      }
+    };
+    const sh = Array.from({ length: 12 }, (_, k) => proj(view([Math.cos(k / 12 * 2 * Math.PI) * .32, -LEN / 2 - .14, Math.sin(k / 12 * 2 * Math.PI) * .2])));
+    for (let k = 1; k < 11; k++) tri(sh[0], sh[k], sh[k + 1], null, null, null, null, [0, 0, 0], 1, .35);
+    const list = [];
+    for (const f of faces) {
+      const v = f.v.map(view), n = rot(f.n);
+      if (dot(n, v[0]) >= 0) continue;                              // facing away from the camera
+      list.push({ s: v.map(proj), uv: f.uv, tex: f.tex, col: f.col, z: v.reduce((s, q) => s + q[2], 0) / v.length, shade: Math.min(1.15, .45 + .7 * Math.max(0, dot(n, LIGHT))) });
+    }
+    list.sort((a, b) => b.z - a.z);                                 // far faces first
+    for (const f of list) for (let k = 1; k + 1 < f.s.length; k++)
+      tri(f.s[0], f.s[k], f.s[k + 1], f.uv && f.uv[0], f.uv && f.uv[k], f.uv && f.uv[k + 1], f.tex, f.col, f.shade, 1);
+    ctx.putImageData(img, 0, 0);
+  }
+  function loop(t) {
+    if (!canvas || !canvas.isConnected || !spin) { running = false; return; }
+    if (t - last >= 1000 / 24) {                                    // about 24 frames a second, like a PS1 select screen
+      if (last && canvas.offsetParent) {
+        const dt = Math.min(100, t - last) / 1000;
+        theta += dt * (1 + boost); boost *= Math.exp(-dt * 4); draw();
+      }
+      last = t;
+    }
+    requestAnimationFrame(loop);
+  }
+  function use(n) {
+    n = ((n | 0) % DESIGNS.length + DESIGNS.length) % DESIGNS.length;
+    if (n === who) return;
+    if (who >= 0 && spin) boost = 9;                                // a quick extra spin when the deck changes
+    who = n; design = DESIGNS[n]; faces = board(design);
+    if (ctx) draw();
+  }
+  // the same canvas moves into each re-render, so the spin carries on smoothly
+  function el(n) {
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.width = W; canvas.height = H; canvas.className = "deck-view";
+      canvas.setAttribute("aria-hidden", "true");
+      try { ctx = canvas.getContext("2d"); } catch (e) { ctx = null; }
+      if (ctx) img = ctx.createImageData(W, H);
+    }
+    use(n);
+    canvas.title = `${design.name} deck`;
+    start();
+    return canvas;
+  }
+  function start() { if (ctx && spin && !running && typeof requestAnimationFrame === "function") { running = true; last = 0; requestAnimationFrame(loop); } }
+  function setSpin(on) {
+    spin = !!on;
+    try { localStorage.setItem(SPIN_KEY, spin ? "on" : "off"); } catch (e) { /* storage unavailable */ }
+    if (spin) start();
+  }
+  // draw one exact pose (used to check the decks frame by frame)
+  function pose(a, n) { if (!ctx) return null; use(n); boost = 0; theta = a; draw(); return canvas.toDataURL(); }
+  return { el, pose, setSpin, spinning: () => spin, names: () => DESIGNS.map(d => d.name) };
+})();
 
 // --- skaters tab ---
 function renderRoster() {
-  const box = $("roster"), d = st.save;
+  // a game-style carousel: one skater at a time, with arrows either side (it wraps around)
+  const box = $("roster"), d = st.save, n = st.skater, total = Core.SKATERS, s = Core.skater(d, n);
+  const prev = (n + total - 1) % total, next = (n + 1) % total;
+  const kindText = { pro: "Pro skater", created: "Created skater", secret: "Secret skater" }[s.kind];
   const groups = [["Pros", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]], ["Created skaters", [13, 14, 15, 16]], ["Secret skaters", [17, 18, 19]]];
-  const pick = h("select", { class: "roster-pick", id: "roster-pick", "aria-label": "Skater" });
-  const parts = [h("h2", { class: "pnl-tab", text: "Select skater" }), pick];
+  const pick = h("select", { class: "roster-pick", id: "roster-pick", "aria-label": "Jump to a skater" });
   for (const [title, list] of groups) {
     const og = h("optgroup", { label: title });
-    const ol = h("ol");
-    for (const n of list) {
-      const s = Core.skater(d, n);
-      og.append(h("option", { value: n, text: s.name + (s.locked ? " (locked)" : "") }));
-      ol.append(h("li", null, h("button", { class: "plate", type: "button", id: `sk-${n}`, "data-act": "skater", "data-n": n, "aria-current": n === st.skater ? "true" : "false" },
-        h("span", { text: s.name }), s.locked ? h("span", { class: "lock", text: "locked" }) : null)));
-    }
+    for (const k of list) { const o = Core.skater(d, k); og.append(h("option", { value: k, text: o.name + (o.locked ? " (locked)" : "") })); }
     pick.append(og);
-    parts.push(h("h3", { text: title }), ol);
   }
-  pick.value = st.skater;
-  box.replaceChildren(...parts);
+  pick.value = n;
+  box.replaceChildren(
+    h("span", { class: "pnl-tab", "aria-hidden": "true" }, "Select skater"),
+    h("div", { class: "picker-row" },
+      h("button", { class: "picker-arrow prev", type: "button", id: "sk-prev", "data-act": "skater", "data-n": prev, "aria-label": `Previous skater: ${Core.skaterName(d, prev)}`, title: `Previous: ${Core.skaterName(d, prev)}` }),
+      h("div", { class: "picker-mid" },
+        Deck.el(n),
+        h("button", { class: "spin-toggle", type: "button", id: "deck-spin", "data-act": "deck-spin", "aria-pressed": Deck.spinning() ? "true" : "false" }, Deck.spinning() ? "Stop spinning" : "Spin deck"),
+        h("h2", { class: "picker-name" + (st.slide ? ` slide-${st.slide}` : ""), id: "picker-name", text: s.name }),
+        h("p", { class: "picker-sub" }, `${kindText}, ${n + 1} of ${total}`, s.locked ? h("span", { class: "lock", text: "Locked" }) : null)),
+      h("button", { class: "picker-arrow next", type: "button", id: "sk-next", "data-act": "skater", "data-n": next, "aria-label": `Next skater: ${Core.skaterName(d, next)}`, title: `Next: ${Core.skaterName(d, next)}` })),
+    h("label", { class: "picker-jump", for: "roster-pick" }, h("span", { class: "m-lab", text: "Jump to:" }), pick));
+  st.slide = null;
 }
 
 function stepper(id, label, value, lo, hi, act, extra = {}) {
@@ -909,8 +1202,6 @@ function stepper(id, label, value, lo, hi, act, extra = {}) {
 
 function renderSkater() {
   const d = st.save, n = st.skater, s = Core.skater(d, n);
-  const kindText = { pro: "Pro skater", created: "Created skater", secret: "Secret skater" }[s.kind];
-
   const stats = h("div", { class: "stats" }, Core.STATS.flatMap((name, i) => {
     const v = s.stats[i];
     const dots = h("span", { class: "dots", "aria-hidden": "true" });
@@ -924,10 +1215,7 @@ function renderSkater() {
         h("span", { class: "stat-val", text: v, "aria-label": `${name} is ${v} of 10` })),
     ];
   }));
-  const statsCard = pnl("Stats", null,
-    h("div", { class: "sk-head" },
-      h("h2", { class: "skater-name", text: s.name }),
-      h("p", { class: "skater-kind" }, kindText, s.locked ? h("span", { class: "lock", text: "Locked" }) : null)),
+  const statsCard = pnl("Stats", { label: `${s.name}'s stats` },
     stats,
     h("div", { class: "row-acts" },
       h("button", { class: "btn", type: "button", id: "max-stats", "data-act": "max-stats" }, "Max all stats"),
@@ -946,6 +1234,14 @@ function renderSkater() {
       stepper("decks", "Decks unlocked", s.decks, dlo, dhi, "decks")),
     h("p", { class: "hint", style: "margin:14px 0 0", text: "Levels open as the career total grows, and with medals for some levels, just like in the game. Cash is what's left to spend, so it can't be more than the career total. The most a skater can earn is $150,000." }));
 
+  const profileCard = s.kind === "created" ? pnl("Profile", { label: "Created skater's name and hometown" },
+    h("div", { class: "money" },
+      h("label", { class: "m-lab", for: "cas-name", text: "Name:" }),
+      h("input", { type: "text", id: "cas-name", class: "cas-text", value: Core.casText(d, n, "name"), maxlength: 15, autocomplete: "off", spellcheck: "false", "data-act": "cas-name" }),
+      h("label", { class: "m-lab", for: "cas-town", text: "Hometown:" }),
+      h("input", { type: "text", id: "cas-town", class: "cas-text", value: Core.casText(d, n, "town"), maxlength: 15, autocomplete: "off", spellcheck: "false", "data-act": "cas-town" })),
+    h("p", { class: "hint", style: "margin:12px 0 0", text: "Letters, numbers, spaces and hyphens, up to 15 characters." })) : null;
+
   const medalsCard = pnl("Medals", null,
     h("div", { class: "medals" }, COMPS.map((l, k) => {
       const L = Core.LEVELS[l], gold = s.levels[l].gold;
@@ -957,7 +1253,7 @@ function renderSkater() {
   const career = pnl("Career", null,
     h("div", { class: "levels" }, Core.LEVELS.map((L, l) => levelRow(L, l, s.levels[l]))));
 
-  $("skater").replaceChildren(h("div", { class: "sk-grid" }, statsCard, h("div", { class: "sk-side" }, moneyCard, medalsCard)), career);
+  $("skater").replaceChildren(h("div", { class: "sk-grid" }, statsCard, h("div", { class: "sk-side" }, profileCard, moneyCard, medalsCard)), career);
 }
 
 function levelRow(L, l, lv) {
@@ -1042,6 +1338,60 @@ function applyGapFilter() {
   if (msg) msg.textContent = !q ? "" : shown ? `${shown} ${shown === 1 ? "gap matches" : "gaps match"}.` : "No gaps match that name.";
 }
 
+// --- high scores tab ---
+function renderScores() {
+  const d = st.save;
+  const names = Array.from({ length: Core.SKATERS }, (_, n) => Core.skaterName(d, n));
+  const show = ini => ini.replace(/[^\x20-\x7E]/g, "?");
+  const levels = Core.LEVELS.map((L, t) => {
+    const rows = Core.highScores(d, t);
+    const det = h("details", { class: "level hs-level", open: st.hsOpen.has(t) },
+      h("summary", { id: `hl-${t}` },
+        h("span", { class: "lv-name", text: L.name }),
+        h("span", { class: "lv-prog", text: `Top score ${fmt(rows[0].score)}` }),
+        h("span", { class: "lv-cash", text: show(rows[0].initials).trim() })));
+    det.addEventListener("toggle", () => { if (det.open) st.hsOpen.add(t); else st.hsOpen.delete(t); });
+    det.append(h("div", { class: "lv-body" }, h("div", { class: "wide-scroll" }, h("table", { class: "hs-table" },
+      h("thead", null, h("tr", null, h("th", { text: "#" }), h("th", { text: "Initials" }), h("th", { text: "Skater" }), h("th", { text: "Score" }))),
+      h("tbody", null, rows.map((r, i) => {
+        const where = `${L.name}, place ${i + 1}`;
+        const pick = h("select", { id: `hs-${t}-${i}-sk`, "data-act": "hs-skater", "data-t": t, "data-i": i, "aria-label": `${where}, skater` },
+          names.map((nm, n) => h("option", { value: n, text: nm })));
+        if (r.skater < Core.SKATERS) pick.value = r.skater; else pick.prepend(h("option", { value: r.skater, text: "Unknown", selected: true }));
+        return h("tr", null,
+          h("td", { class: "hs-rank", text: i + 1 }),
+          h("td", null, h("input", { type: "text", class: "ini", id: `hs-${t}-${i}-ini`, value: show(r.initials).trimEnd(), maxlength: 3, autocomplete: "off", spellcheck: "false", "data-act": "hs-ini", "data-t": t, "data-i": i, "aria-label": `${where}, initials` })),
+          h("td", null, pick),
+          h("td", null, h("input", { type: "number", id: `hs-${t}-${i}-score`, min: 0, max: Core.MAX_SCORE, step: 1, inputmode: "numeric", value: r.score, "data-act": "hs-score", "data-t": t, "data-i": i, "aria-label": `${where}, score` })));
+      }))))));
+    return det;
+  });
+  $("panel-scores").replaceChildren(pnl("High scores", null,
+    h("p", { class: "hint", text: "Each level keeps its top 8 scores. Initials are up to 3 letters and scores go up to 9,999,999. Each table stays in order from highest to lowest, like in the game." }),
+    h("div", { class: "levels" }, levels)));
+}
+function onScore(el) {
+  const act = el.getAttribute("data-act"), t = num(el, "data-t"), i = num(el, "data-i"), L = Core.LEVELS[t];
+  const cur = Core.highScores(st.save, t)[i], entry = { ...cur };
+  if (act === "hs-ini") {
+    const v = Core.cleanInitials(el.value);
+    if (!v) { el.value = cur.initials.trimEnd(); status("Initials need at least one letter from A to Z.", "err"); return; }
+    entry.initials = v;
+  } else if (act === "hs-score") entry.score = Math.max(0, Math.min(Core.MAX_SCORE, Math.floor(Number(el.value) || 0)));
+  else entry.skater = Number(el.value);
+  const at = Core.setHighScore(st.save.slice(), t, i, entry);   // where it will land once the table re-sorts
+  edit(x => Core.setHighScore(x, t, i, entry),
+    `${L.name} high scores: ${entry.initials.trim()} with ${fmt(entry.score)} by ${Core.skaterName(st.save, entry.skater)}` + (at !== i ? `, now in place ${at + 1}.` : "."));
+  // the table re-sorts, so follow the entry to its new place
+  const want = $(`hs-${t}-${at}-${act === "hs-ini" ? "ini" : act === "hs-score" ? "score" : "sk"}`);
+  if (want) want.focus();
+}
+function onCasText(el) {
+  const n = st.skater, which = el.id === "cas-name" ? "name" : "town", v = el.value.trim(), old = Core.casText(st.save, n, which);
+  if (!Core.validCasText(v)) { el.value = old; status("Use letters, numbers, spaces and hyphens only, from 1 to 15 characters.", "err"); return; }
+  edit(x => Core.setCasText(x, n, which, v), which === "name" ? `Created skater renamed to ${v}.` : `Hometown set to ${v}.`);
+}
+
 // --- cheats and unlocks tab ---
 function check(id, act, on, label, small, extra = {}) {
   return h("label", { class: "check", for: id }, h("input", { type: "checkbox", id, checked: on, "data-act": act, ...extra }), h("span", null, label, small ? h("small", { text: small }) : null));
@@ -1069,7 +1419,7 @@ function renderUnlocks() {
 }
 
 // --- menu ---
-const TABS = { skaters: "Skaters", gaps: "Gap List", unlocks: "Unlocks" };
+const TABS = { skaters: "Skaters", gaps: "Gap List", scores: "High Scores", unlocks: "Unlocks" };
 function showTab(name) {
   st.tab = name;
   for (const t of Object.keys(TABS)) {
@@ -1164,7 +1514,14 @@ function onAct(el) {
   const act = el.getAttribute("data-act"), n = st.skater, d = st.save, name = Core.skaterName(d, n);
   const L = el.hasAttribute("data-l") ? Core.LEVELS[num(el, "data-l")] : null, l = num(el, "data-l");
   switch (act) {
+    case "deck-spin":
+      Deck.setSpin(!Deck.spinning());
+      el.textContent = Deck.spinning() ? "Stop spinning" : "Spin deck";
+      el.setAttribute("aria-pressed", Deck.spinning() ? "true" : "false");
+      status(Deck.spinning() ? "The deck is spinning." : "The deck has stopped spinning.");
+      break;
     case "skater":
+      st.slide = el.id === "sk-prev" ? "prev" : el.id === "sk-next" ? "next" : null;
       st.skater = num(el, "data-n"); refresh(); status(`Editing ${Core.skaterName(d, st.skater)}.`); break;
     case "stat": {
       const i = num(el, "data-i"), v = Core.skater(d, n).stats[i] + num(el, "data-d");
@@ -1238,7 +1595,7 @@ for (const t of Object.keys(TABS)) $(`tab-${t}`).addEventListener("click", () =>
 $("editor").querySelector(".tabs").addEventListener("keydown", e => {
   const order = Object.keys(TABS), i = order.indexOf(st.tab);
   if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-  const next = order[(i + (e.key === "ArrowRight" ? 1 : 2)) % 3];
+  const next = order[(i + (e.key === "ArrowRight" ? 1 : order.length - 1)) % order.length];
   showTab(next); $(`tab-${next}`).focus();
 });
 const ed = $("editor");
@@ -1253,9 +1610,17 @@ ed.addEventListener("change", e => {
   if (!st.save) return;
   if (el.id === "roster-pick") { st.skater = Number(el.value); refresh(); status(`Editing ${Core.skaterName(st.save, st.skater)}.`); return; }
   if (el.id === "cash" || el.id === "earn") { onMoney(el); return; }
+  if (el.matches("[data-act^=hs-]")) { onScore(el); return; }
+  if (el.id === "cas-name" || el.id === "cas-town") { onCasText(el); return; }
   if (el.matches("input[type=checkbox][data-act]")) onCheck(el);
 });
 document.addEventListener("keydown", e => {
+  if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && st.save && st.tab === "skaters" && !$("dlg-back").classList.contains("on") &&
+      !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.target.closest("input, select, textarea, [role=tab], summary")) {
+    e.preventDefault();
+    onAct($(e.key === "ArrowLeft" ? "sk-prev" : "sk-next"));
+    return;
+  }
   // ctrl+z = undo, unless typing in a box
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z" && !e.target.closest("input, textarea, select") && !$("dlg-back").classList.contains("on")) {
     e.preventDefault(); undo();
