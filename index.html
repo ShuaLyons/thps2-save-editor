@@ -52,6 +52,7 @@ html body { background: transparent !important; }
 body {
   margin: 0; min-height: 100vh; color: var(--ink);
   font: 400 1.0625rem/1.5 var(--body);
+  text-shadow: 1px 1px 0 #000; /* seats body copy into the dark textured background; headings set their own shadows */
   -webkit-text-size-adjust: 100%;
 }
 /* a blurred skate spot at dusk behind everything (generated, not game art) */
@@ -74,7 +75,12 @@ body {
 .frame-bottom > span { top: calc(100% - 3px); border-bottom: 3px solid #121a26; border-left: 2px solid #cfd9e3; border-bottom-left-radius: 26px 24px; box-shadow: 0 4px 0 rgba(4, 9, 16, .7); }
 /* spray-painted wall strips beyond the bars */
 .strip { background: var(--img-strip) left top / auto 100% repeat-x, #0b1628; }
-.strip-bottom { height: 84px; }
+.strip-bottom { /* taller, and fades into near-black so the page closes off instead of stopping dead */
+  height: 150px;
+  background:
+    linear-gradient(180deg, rgba(3, 6, 11, 0) 0%, rgba(3, 6, 11, .55) 45%, rgba(3, 6, 11, .92) 80%, #03060b 100%),
+    var(--img-strip) left top / auto 120px repeat-x, #0b1628;
+}
 /* safe-area strip behind the sticky bar */
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--panel-2); }
 /* grit */
