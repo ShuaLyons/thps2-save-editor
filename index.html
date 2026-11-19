@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/caKeGbIz0lqJ1pwe/bj1OX6Pwn2WCdHMHvVvCeuPFo='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-noRYcVXU4K4u2Hja+e28Xhk+1vpYM69eMc2OS3VYovU='; style-src 'unsafe-inline'; font-src data:; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>THPS2 Save Editor</title>
@@ -113,10 +113,12 @@ a { color: inherit; }
 .banner span {
   writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap;
   font: 400 var(--banner-size, 5.4rem)/1 var(--chunky); color: #0a1630; letter-spacing: 0; pointer-events: none;
-  position: relative; left: 3px;
+  position: relative; left: 30px; top: 8px; /* sits a little low and hangs over the strip's right edge onto the page */
   /* dark squared letters with a pale blue outline, pressed into the strip */
   -webkit-text-stroke: 3px #9cc0f0; paint-order: stroke fill;
   text-shadow: -2px 2px 0 #000000;
+  /* one outline around the whole word, so it joins up behind the letters, plus a small shadow (the span is rotated, so -x/-y lands down and to the right on screen) */
+  filter: drop-shadow(3px 3px 0 #000) drop-shadow(-3px -3px 0 #000) drop-shadow(3px -3px 0 #000) drop-shadow(-3px 3px 0 #000) drop-shadow(-2px -2px 2px rgba(0, 0, 0, .6));
 }
 /* letters lean forward and butt up against each other, with capitals and small letters mixed */
 .banner span i { font-style: normal; display: inline-block; margin-block-end: -.15em; transform: skewY(14deg); vertical-align: baseline; transform-origin: 50% 50%; }
@@ -946,13 +948,12 @@ function status(msg, kind = "") { const s = $("status"); s.textContent = msg; s.
 function banner(text) {
   // one element per letter so each can bounce a little; the banner is decoration, hidden from screen readers
   const el = $("banner-text");
-  // mixed capitals and small letters in a fixed pattern (each word starts with a capital), squeezed so they overlap
-  const CAPS = [1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0];
+  // capitals and small letters take turns (each word starts with a capital), squeezed so they overlap
   let n = 0;
   el.replaceChildren(...[...text].map(ch => {
     const i = document.createElement("i");
     if (ch === " ") { i.className = "sp"; n = 0; return i; }
-    i.textContent = n === 0 || CAPS[n % CAPS.length] ? ch.toUpperCase() : ch.toLowerCase();
+    i.textContent = n % 2 === 0 ? ch.toUpperCase() : ch.toLowerCase();
     if (i.textContent !== ch.toUpperCase()) i.className = "lo";
     n++;
     return i;
@@ -963,7 +964,7 @@ function fitBanner() {
   // shrink long words until they fit the strip
   const el = $("banner-text"), strip = el.parentElement, vertical = getComputedStyle(el).writingMode.startsWith("vertical");
   el.style.removeProperty("--banner-size");
-  const room = vertical ? strip.clientHeight - 60 : strip.clientWidth - 40;
+  const room = vertical ? strip.clientHeight - 76 : strip.clientWidth - 40;
   const used = vertical ? el.getBoundingClientRect().height : el.getBoundingClientRect().width;
   if (used > room) el.style.setProperty("--banner-size", (parseFloat(getComputedStyle(el).fontSize) * room / used).toFixed(1) + "px");
 }
