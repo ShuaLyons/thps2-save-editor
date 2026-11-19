@@ -29,7 +29,7 @@ The editor keeps the game's own bookkeeping in step, so it can't create a career
 
 There's also undo, reset, and a warning if you try to leave with unsaved changes.
 
-Skaters are picked like on the game's select screen: flick through them with the arrows (or your keyboard's arrow keys), or jump straight to one. Each skater has their own original pixel-art deck spinning above their name, shown PS1-style with chunky textures, wobbly pixel-snapped corners and dithered colour. A **Spin deck** button starts or stops it, and the editor remembers your choice.
+Skaters are picked like on the game's select screen: flick through them with the arrows (or your keyboard's arrow keys), or jump straight to one. Each skater has their own original pixel-art deck spinning above their name, shown PS1-style with chunky textures, wobbly pixel-snapped corners and dithered colour. It spins on its own whenever you're on the skater select.
 
 ![A level's goal list and cash icons](screenshots/career.jpg)
 

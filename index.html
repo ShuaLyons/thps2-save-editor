@@ -269,8 +269,6 @@ label { cursor: pointer; }
 .picker-mid { text-align: center; min-width: 0; }
 /* the spinning deck: drawn at 56x80 and shown at 2x for chunky PS1 pixels */
 .deck-view { display: block; width: 112px; height: 160px; margin: -6px auto 4px; image-rendering: pixelated; background: radial-gradient(ellipse 50% 46% at 50% 50%, rgba(127, 151, 177, .22), transparent 70%); }
-.spin-toggle { font: 800 italic .78rem/1 var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: none; border: 2px solid var(--steel-lo); border-radius: 999px; padding: 5px 10px; margin: 0 auto 10px; cursor: pointer; }
-.spin-toggle:hover { color: var(--gold); border-color: var(--gold); }
 .picker-name { font: 800 italic clamp(1.9rem, 5vw, 3.2rem)/1.05 var(--display); text-transform: uppercase; letter-spacing: .03em; text-shadow: 3px 3px 0 var(--shadow); overflow-wrap: anywhere; }
 .picker-sub { margin: 8px 0 0; font: 800 italic 1rem var(--display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .picker-sub .lock { color: var(--red); margin-left: .6em; }
@@ -1169,11 +1167,6 @@ const Deck = (() => {
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   const LIGHT = norm([-.4, .6, -.7]);
   let canvas = null, ctx = null, img = null, theta = .35, boost = 0, last = 0, running = false, who = -1, faces = [], design = DESIGNS[0];
-  const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // spinning follows the device's reduced-motion setting, but the Spin button can override it (and is remembered)
-  const SPIN_KEY = "thps2-deck-spin";
-  let spin = !still;
-  try { const saved = localStorage.getItem(SPIN_KEY); if (saved === "on" || saved === "off") spin = saved === "on"; } catch (e) { /* storage unavailable */ }
   function draw() {
     const px = img.data; px.fill(0);
     const ct = Math.cos(theta), sn = Math.sin(theta), cp = Math.cos(PITCH), sp = Math.sin(PITCH);
@@ -1226,7 +1219,7 @@ const Deck = (() => {
     ctx.putImageData(img, 0, 0);
   }
   function loop(t) {
-    if (!canvas || !canvas.isConnected || !spin) { running = false; return; }
+    if (!canvas || !canvas.isConnected) { running = false; return; }
     if (t - last >= 1000 / 24) {                                    // about 24 frames a second, like a PS1 select screen
       if (last && canvas.offsetParent) {
         const dt = Math.min(100, t - last) / 1000;
@@ -1239,7 +1232,7 @@ const Deck = (() => {
   function use(n) {
     n = ((n | 0) % DESIGNS.length + DESIGNS.length) % DESIGNS.length;
     if (n === who) return;
-    if (who >= 0 && spin) boost = 9;                                // a quick extra spin when the deck changes
+    if (who >= 0) boost = 9;                                // a quick extra spin when the deck changes
     who = n; design = DESIGNS[n]; faces = board(design);
     if (ctx) draw();
   }
@@ -1257,15 +1250,10 @@ const Deck = (() => {
     start();
     return canvas;
   }
-  function start() { if (ctx && spin && !running && typeof requestAnimationFrame === "function") { running = true; last = 0; requestAnimationFrame(loop); } }
-  function setSpin(on) {
-    spin = !!on;
-    try { localStorage.setItem(SPIN_KEY, spin ? "on" : "off"); } catch (e) { /* storage unavailable */ }
-    if (spin) start();
-  }
+  function start() { if (ctx && !running && typeof requestAnimationFrame === "function") { running = true; last = 0; requestAnimationFrame(loop); } }
   // draw one exact pose (used to check the decks frame by frame)
   function pose(a, n) { if (!ctx) return null; use(n); boost = 0; theta = a; draw(); return canvas.toDataURL(); }
-  return { el, pose, setSpin, spinning: () => spin, names: () => DESIGNS.map(d => d.name) };
+  return { el, pose, names: () => DESIGNS.map(d => d.name) };
 })();
 
 // --- skaters tab ---
@@ -1288,7 +1276,6 @@ function renderRoster() {
       h("button", { class: "picker-arrow prev", type: "button", id: "sk-prev", "data-act": "skater", "data-n": prev, "aria-label": `Previous skater: ${Core.skaterName(d, prev)}`, title: `Previous: ${Core.skaterName(d, prev)}` }),
       h("div", { class: "picker-mid" },
         Deck.el(n),
-        h("button", { class: "spin-toggle", type: "button", id: "deck-spin", "data-act": "deck-spin", "aria-pressed": Deck.spinning() ? "true" : "false" }, Deck.spinning() ? "Stop spinning" : "Spin deck"),
         h("h2", { class: "picker-name" + (st.slide ? ` slide-${st.slide}` : ""), id: "picker-name", text: s.name }),
         h("p", { class: "picker-sub" }, `${kindText}, ${n + 1} of ${total}`, s.locked ? h("span", { class: "lock", text: "Locked" }) : null)),
       h("button", { class: "picker-arrow next", type: "button", id: "sk-next", "data-act": "skater", "data-n": next, "aria-label": `Next skater: ${Core.skaterName(d, next)}`, title: `Next: ${Core.skaterName(d, next)}` })),
@@ -1617,12 +1604,6 @@ function onAct(el) {
   const act = el.getAttribute("data-act"), n = st.skater, d = st.save, name = Core.skaterName(d, n);
   const L = el.hasAttribute("data-l") ? Core.LEVELS[num(el, "data-l")] : null, l = num(el, "data-l");
   switch (act) {
-    case "deck-spin":
-      Deck.setSpin(!Deck.spinning());
-      el.textContent = Deck.spinning() ? "Stop spinning" : "Spin deck";
-      el.setAttribute("aria-pressed", Deck.spinning() ? "true" : "false");
-      status(Deck.spinning() ? "The deck is spinning." : "The deck has stopped spinning.");
-      break;
     case "skater":
       st.slide = el.id === "sk-prev" ? "prev" : el.id === "sk-next" ? "next" : null;
       st.skater = num(el, "data-n"); refresh(); status(`Editing ${Core.skaterName(d, st.skater)}.`); break;
