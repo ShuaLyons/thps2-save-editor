@@ -1,0 +1,4 @@
+# Hand-written, not minified: the long lines are inlined fonts and images (style.css) and colour tables (app.js).
+# Without this, GitHub treats them as generated and leaves them out of the language stats.
+style.css linguist-generated=false
+app.js linguist-generated=false
